@@ -1,66 +1,79 @@
-'use client'
-import { useEffect, useState } from "react";
+"use client"
+import { type ChangeEventHandler, useState, useEffect } from 'react' 
 
-interface DataItem{
-  id: number
-  
+interface TodoFormProps {
+  addTodo: (todo: string) => void
 }
 
-const useFetch = <T extends DataItem>({url}: {url: string}) => {
-  const [data, setData] = useState<T[]>([])
- 
-  useEffect(() => {
-    const fetchUser = async() =>{
-        const res = await fetch(url)
-        const data = await res.json()
-        console.log(data)
-        setData(data)
-    }
-    fetchUser();
-  }, [url]);
-     
-  return data;
-}
-interface User {
-  id: number;
-  name: string;
-}
-
-const User = () => {
-  const url = "https://jsonplaceholder.typicode.com/users";
-  const user = useFetch<User>({url})
+const TodoForm = ({ addTodo }: TodoFormProps) => {
+  const [todo, setTodo] = useState('')
+  const handleTodoFormChanged: ChangeEventHandler<HTMLInputElement> = (event) => {
+    setTodo(event.target.value)
+  }
+  const handleAddTodo = () => {
+    addTodo(todo)
+    setTodo('')
+  }
 
   return (
-    <ul>
-      {user.map((user) => <li key={user.id}>{user.name}</li>)}
-    </ul>
+    <>
+      <input type="text" onChange={handleTodoFormChanged} value={todo} />
+      <button onClick={handleAddTodo}>Add Todo</button>
+    </>
   )
 }
 
 interface Todo {
   id: number;
-  title: string;
+  content: string;
 }
 
-const Todo = () => {
-    const url = "https://jsonplaceholder.typicode.com/todos";
-  const todos = useFetch<Todo>({url})
+interface TodoListProps {
+  todos: Todo[]
+}
 
+const TodoList = ({ todos }: TodoListProps) => {
   return (
     <ul>
-      {todos.map((todo) => <li key={todo.id}>{todo.title}</li>)}
+      {todos.map(todo => <li key={todo.id}>{todo.content}</li>)}
     </ul>
   )
-
 }
 
 const IndexPage = () => {
+  const [isCheck, setIsCheck] = useState(false)
+  const [todos, setTodos] = useState<Todo[]>([]) 
+
+  const url = 'https://jsonplaceholder.typicode.com/todos' 
+
+  useEffect(() => {
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        const formattedTodos = data.map((item: any) => ({
+          id: item.id,
+          content: item.title 
+        }))
+        setTodos(formattedTodos)
+      })
+  }, [])
+
+  const addTodo = (todo: string) => {
+    setTodos([{ id: todos.length + 1, content: todo }, ...todos])
+  }
+
+  const handleIscheck = (event) => {
+    setIsCheck(event.target.checked) 
+  }
+
   return (
-    <div>
-      <User></User>
-      <br></br>
-      <Todo></Todo>
-    </div>
-  )
+    <>
+      <TodoForm addTodo={addTodo}></TodoForm>
+      <TodoList todos={todos}></TodoList>
+      { isCheck && <div>Checked</div>}
+      <input type="checkbox" onChange={handleIscheck}/>
+    </>
+  )       
 }
+
 export default IndexPage
