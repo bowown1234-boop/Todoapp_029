@@ -1,31 +1,66 @@
-"use client"
-import { useState } from "react";
+'use client'
+import { useEffect, useState } from "react";
 
-const Indexpage = () => {
-
-  const [todo, setTodo] = useState("");
-  const [todos, setTodos]  = useState([
-    {id: 1, content: "Todo1"},
-    {id: 2, content: "Todo2"},
-    {id: 3, content: "Todo3"}
-  ]);
-
-  const handleAddTodofromchanged = (event) => {
-    setTodo(event.target.value);
-  };
-  const addtodo = () =>{
-    setTodos([{id:todos.length + 1, content: todo}, ...todos])
-  };
-  return(
-    <>
-      <input type="text" onChange={handleAddTodofromchanged} />
-      <button onClick={addtodo}>Add</button>
-    <ul>
-      {todos.map(todo => <li key={todo.id}>{todo.content}</li>)}
-    </ul>
-    </>
-
-  );
- 
+interface DataItem{
+  id: number
+  
 }
-export default Indexpage;
+
+const useFetch = <T extends DataItem>({url}: {url: string}) => {
+  const [data, setData] = useState<T[]>([])
+ 
+  useEffect(() => {
+    const fetchUser = async() =>{
+        const res = await fetch(url)
+        const data = await res.json()
+        console.log(data)
+        setData(data)
+    }
+    fetchUser();
+  }, [url]);
+     
+  return data;
+}
+interface User {
+  id: number;
+  name: string;
+}
+
+const User = () => {
+  const url = "https://jsonplaceholder.typicode.com/users";
+  const user = useFetch<User>({url})
+
+  return (
+    <ul>
+      {user.map((user) => <li key={user.id}>{user.name}</li>)}
+    </ul>
+  )
+}
+
+interface Todo {
+  id: number;
+  title: string;
+}
+
+const Todo = () => {
+    const url = "https://jsonplaceholder.typicode.com/todos";
+  const todos = useFetch<Todo>({url})
+
+  return (
+    <ul>
+      {todos.map((todo) => <li key={todo.id}>{todo.title}</li>)}
+    </ul>
+  )
+
+}
+
+const IndexPage = () => {
+  return (
+    <div>
+      <User></User>
+      <br></br>
+      <Todo></Todo>
+    </div>
+  )
+}
+export default IndexPage
